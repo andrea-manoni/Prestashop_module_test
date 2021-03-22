@@ -1,0 +1,5 @@
+demo_tab_route:
+    path: testModule
+    methods: [GET]
+    defaults:
+      _controller: 'testModule\Controller\AdminController::testAction'

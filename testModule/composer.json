@@ -1,0 +1,19 @@
+{
+    "name": "prestashop/testModule",
+    "description": "Prestashop test module, fetching data from api and showing it in backoffice",
+    "authors": [
+        {
+            "name": "Andrea Manoni",
+            "email": "andrea.manoni@koent.it"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "testModule\\Controller\\": "src/Controller/"
+        }
+    },
+    "config": {
+        "prepend-autoloader": false
+    },
+    "type": "prestashop-module"
+}
