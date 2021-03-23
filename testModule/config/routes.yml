@@ -1,5 +1,8 @@
 demo_tab_route:
-    path: testModule
+    path: testModule/tab
     methods: [GET]
     defaults:
       _controller: 'testModule\Controller\AdminController::testAction'
+      _disable_module_prefix: true
+      _legacy_controller: 'AdminController'
+      _legacy_link: 'AdminController'
