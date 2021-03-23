@@ -113,7 +113,7 @@ class testModule extends Module
         $tab->active = 1;
         $tab->class_name = 'AdminController';
         // Only since 1.7.7, you can define a route name
-        $tab->route = 'demo_tab_route';
+        $tab->route_name = 'demo_tab_route';
         $tab->name = array();
         foreach (Language::getLanguages() as $lang) {
             $tab->name[$lang['id_lang']] = $this->trans('Demo Tab', array(), 'Modules.testModule.Admin', $lang['locale']);

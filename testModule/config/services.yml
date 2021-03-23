@@ -1,4 +1,0 @@
-testModule\Controller\AdminController:
-    class: testModule\Controller\AdminController
-    arguments:
-      - '@doctrine.cache.provider'
