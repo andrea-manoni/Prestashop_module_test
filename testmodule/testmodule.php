@@ -74,7 +74,8 @@ class testModule extends Module
             !parent::install() ||
 			!$this->registerHook('displayOrderConfirmation')||
             !$this->registerHook('actionFrontControllerSetMedia') ||
-			!$this->registerHook('actionOrderStatusPostUpdate')&&
+			!$this->registerHook('actionOrderStatusPostUpdate') &&
+            !$this->registerHook('displayLogoAfter') &&
             $this->installTab() &&
             Configuration::updateValue('TESTMODULE_NAME', 'Username') &&
 			Configuration::updateValue('TESTMODULE_PASSWORD', 'password') &&
@@ -277,11 +278,24 @@ class testModule extends Module
         // Load current value
         $helper->fields_value['TESTMODULE_NAME'] = Tools::getValue('TESTMODULE_NAME', Configuration::get('TESTMODULE_NAME'));
 		$helper->fields_value['TESTMODULE_PASSWORD'] = Tools::getValue('TESTMODULE_PASSWORD', Configuration::get('TESTMODULE_PASSWORD'));
-		$helper->fields_value['TESTMODULE_UPDATE_TIME'] = Tools::getValue('TESTMODULE_UPDATE_TIME', Configuration::get('TESTMODULE_UPDATE_TIME'));
+		$helper->fields_value['TESTMODULE_UPDATE_TIME'] = (int)Tools::getValue('TESTMODULE_UPDATE_TIME', Configuration::get('TESTMODULE_UPDATE_TIME'));
         return $helper->generateForm($fieldsForm);
     }
 
     //HOOKS
+
+    public function hookDisplayLogoAfter(){
+        $this->context->smarty->assign([
+			'my_module_name' => Configuration::get('TESTMODULE_NAME'),
+            'my_module_password' => Configuration::get('TESTMODULE_PASSWORD'),
+			'my_module_update_time' => Configuration::get('TESTMODULE_UPDATE_TIME'),
+			'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
+			
+        ]);
+		
+		return $this->display(__FILE__, 'testModule.tpl');
+    }
+
     public function hookDisplayOrderConfirmation($params)
 	{
 		$this->context->smarty->assign([

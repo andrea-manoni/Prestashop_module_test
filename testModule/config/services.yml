@@ -1,0 +1,9 @@
+services:
+  _defaults:
+    public: true
+
+  koent.test_module.custom_service:
+    class: testModule\Controller\CustomService
+    arguments:
+      - "@translator"
+      - "My custom message111"
