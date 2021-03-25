@@ -5,7 +5,7 @@ namespace testModule\Controller;
 
 use Symfony\Component\Translation\TranslatorInterface;
 
-class YourService {
+class CustomService {
     /** @var TranslatorInterface */
     private $translator;
 

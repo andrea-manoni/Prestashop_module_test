@@ -64,6 +64,11 @@ class testModule extends Module
 		}
 	}
 
+    public function setCRONJOB(){
+        $t = time();
+        Configuration::updateValue('TESTMODULE_UPDATED_CRON', $t);
+    }
+
     public function install()
     {
         if (Shop::isFeatureActive()) {
@@ -76,18 +81,17 @@ class testModule extends Module
             !$this->registerHook('actionFrontControllerSetMedia') ||
 			!$this->registerHook('actionOrderStatusPostUpdate') &&
             !$this->registerHook('displayLogoAfter') &&
-            $this->installTab() &&
-            Configuration::updateValue('TESTMODULE_NAME', 'Username') &&
-			Configuration::updateValue('TESTMODULE_PASSWORD', 'password') &&
-			Configuration::updateValue('TESTMODULE_UPDATE_TIME', 10)
-			
+            $this->installTab()
         ) {
             return false;
         }
-		
+        Configuration::updateValue('TESTMODULE_NAME', 'Username');
+        Configuration::updateValue('TESTMODULE_PASSWORD', 'password');
+        Configuration::updateValue('TESTMODULE_UPDATE_TIME', 10);
         return true;
     }
 
+    
 
     public function enable($force_all = false)
     {
@@ -95,6 +99,7 @@ class testModule extends Module
             && $this->installTab()
         ;
     }
+
 
     public function disable($force_all = false)
     {
@@ -317,6 +322,7 @@ class testModule extends Module
 
     public function hookActionFrontControllerSetMedia()
     {
+
         $this->context->controller->registerStylesheet(
             'TESTMODULE-style',
             $this->_path . 'views/css/testModule.css',
