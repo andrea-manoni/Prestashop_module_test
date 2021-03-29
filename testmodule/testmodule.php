@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 2007-2021 PrestaShop
  *
@@ -29,7 +30,6 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-use Language;
 
 class testModule extends Module
 {
@@ -56,17 +56,12 @@ class testModule extends Module
         if (!Configuration::get('TESTMODULE_NAME')) {
             $this->warning = $this->l('No name provided');
         }
-		if (!Configuration::get('TESTMODULE_PASSWORD')) {
+        if (!Configuration::get('TESTMODULE_PASSWORD')) {
             $this->warning = $this->l('No passwords provided');
         }
-		if(!Configuration::get('TESTMODULE_UPDATE_TIME')) {
-			$this->warning = $this->l('Update time not set');
-		}
-	}
-
-    public function setCRONJOB(){
-        $t = time();
-        Configuration::updateValue('TESTMODULE_UPDATED_CRON', $t);
+        if (!Configuration::get('TESTMODULE_UPDATE_TIME')) {
+            $this->warning = $this->l('Update time not set');
+        }
     }
 
     public function install()
@@ -77,10 +72,9 @@ class testModule extends Module
 
         if (
             !parent::install() ||
-			!$this->registerHook('displayOrderConfirmation')||
+            !$this->registerHook('displayOrderConfirmation') ||
             !$this->registerHook('actionFrontControllerSetMedia') ||
-			!$this->registerHook('actionOrderStatusPostUpdate') &&
-            !$this->registerHook('displayLogoAfter') &&
+            !$this->registerHook('actionOrderStatusPostUpdate') &&
             $this->installTab()
         ) {
             return false;
@@ -91,21 +85,19 @@ class testModule extends Module
         return true;
     }
 
-    
+
 
     public function enable($force_all = false)
     {
         return parent::enable($force_all)
-            && $this->installTab()
-        ;
+            && $this->installTab();
     }
 
 
     public function disable($force_all = false)
     {
         return parent::disable($force_all)
-            && $this->uninstallTab()
-        ;
+            && $this->uninstallTab();
     }
 
     private function installTab()
@@ -144,7 +136,7 @@ class testModule extends Module
 
 
 
-	
+
 
 
     public function uninstall()
@@ -152,8 +144,8 @@ class testModule extends Module
         if (
             !parent::uninstall() ||
             !Configuration::deleteByName('TESTMODULE_NAME') ||
-			!Configuration::deleteByName('TESTMODULE_PASSWORD')||
-			!Configuration::deleteByName('TESTMODULE_UPDATE_TIME') &&
+            !Configuration::deleteByName('TESTMODULE_PASSWORD') ||
+            !Configuration::deleteByName('TESTMODULE_UPDATE_TIME') &&
             $this->uninstallTab()
         ) {
             return false;
@@ -169,44 +161,44 @@ class testModule extends Module
 
         if (Tools::isSubmit('submit' . $this->name)) {
             $testModuleName = strval(Tools::getValue('TESTMODULE_NAME'));
-			$testModulePass = strval(Tools::getValue('TESTMODULE_PASSWORD'));
-			$testModuleUpdateTime = (int)(Tools::getValue('TESTMODULE_UPDATE_TIME'));
+            $testModulePass = strval(Tools::getValue('TESTMODULE_PASSWORD'));
+            $testModuleUpdateTime = intval(Tools::getValue('TESTMODULE_UPDATE_TIME'));
 
             if (
                 !$testModuleName ||
                 empty($testModuleName) ||
                 !Validate::isGenericName($testModuleName)
             ) {
-                $output .= $this->displayError($this->l('Invalid Configuration value'));
+                $output .= $this->displayError($this->l('Invalid Username value'));
             } else {
                 Configuration::updateValue('TESTMODULE_NAME', $testModuleName);
-                $output .= $this->displayConfirmation($this->l('Settings updated'));
+                $output .= $this->displayConfirmation($this->l('Username updated'));
             }
-			
-			 if (
+
+            if (
                 !$testModulePass ||
                 empty($testModulePass) ||
                 !Validate::isGenericName($testModulePass)
             ) {
-                $output .= $this->displayError($this->l('Invalid Configuration value'));
+                $output .= $this->displayError($this->l('Invalid password value'));
             } else {
                 Configuration::updateValue('TESTMODULE_PASSWORD', $testModulePass);
-                $output .= $this->displayConfirmation($this->l('Settings updated'));
+                $output .= $this->displayConfirmation($this->l('Password updated'));
             }
-			
-			if (
-			!$testModuleUpdateTime
-		)
-		{
-			$output .= $this->displayError($this->l('Invalid Configuration value'));
-		} else {
-				Configuration::updateValue('TESTMODULE_UPDATE_TIME', $testModuleUpdateTime);
-			}
-			
-		
+
+            if (
+                !$testModuleUpdateTime ||
+				empty($testModuleUpdateTime) ||
+				!is_numeric($testModuleUpdateTime)
+            ) {
+                $output .= $this->displayError($this->l('Invalid Update time value'));
+            } else {
+                Configuration::updateValue('TESTMODULE_UPDATE_TIME', $testModuleUpdateTime);
+				$output .= $this->displayConfirmation($this->l('Update time updated'));
+            }
         }
-		
-		
+
+
         return $output . $this->displayForm();
     }
 
@@ -236,14 +228,13 @@ class testModule extends Module
                     'size' => 20,
                     'required' => true
                 ],
-				[
-					'type' => 'html',
-                    'label' => $this->l('Time to pass before new updates'),
+                [
+                    'type' => 'text',
+                    'label' => $this->l('Time to pass before new updates in minutes'),
                     'name' => 'TESTMODULE_UPDATE_TIME',
                     'size' => 20,
                     'required' => true,
-					'html_content' => '<input type="number" name="TESTMODULE_UPDATE_TIME">'
-				]
+                ]
             ],
             'submit' => [
                 'title' => $this->l('Save'),
@@ -282,43 +273,44 @@ class testModule extends Module
 
         // Load current value
         $helper->fields_value['TESTMODULE_NAME'] = Tools::getValue('TESTMODULE_NAME', Configuration::get('TESTMODULE_NAME'));
-		$helper->fields_value['TESTMODULE_PASSWORD'] = Tools::getValue('TESTMODULE_PASSWORD', Configuration::get('TESTMODULE_PASSWORD'));
-		$helper->fields_value['TESTMODULE_UPDATE_TIME'] = (int)Tools::getValue('TESTMODULE_UPDATE_TIME', Configuration::get('TESTMODULE_UPDATE_TIME'));
+        $helper->fields_value['TESTMODULE_PASSWORD'] = Tools::getValue('TESTMODULE_PASSWORD', Configuration::get('TESTMODULE_PASSWORD'));
+        $helper->fields_value['TESTMODULE_UPDATE_TIME'] = (int)Tools::getValue('TESTMODULE_UPDATE_TIME', Configuration::get('TESTMODULE_UPDATE_TIME'));
         return $helper->generateForm($fieldsForm);
     }
 
     //HOOKS
 
-    public function hookDisplayLogoAfter(){
+    public function hookDisplayLogoAfter()
+    {
         $this->context->smarty->assign([
-			'my_module_name' => Configuration::get('TESTMODULE_NAME'),
+            'my_module_name' => Configuration::get('TESTMODULE_NAME'),
             'my_module_password' => Configuration::get('TESTMODULE_PASSWORD'),
-			'my_module_update_time' => Configuration::get('TESTMODULE_UPDATE_TIME'),
-			'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
-			
+            'my_module_update_time' => Configuration::get('TESTMODULE_UPDATE_TIME'),
+            'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
+
         ]);
-		
-		return $this->display(__FILE__, 'testModule.tpl');
+
+        return $this->display(__FILE__, 'testModule.tpl');
     }
 
     public function hookDisplayOrderConfirmation($params)
-	{
-		$this->context->smarty->assign([
-			'my_module_name' => Configuration::get('TESTMODULE_NAME'),
+    {
+        $this->context->smarty->assign([
+            'my_module_name' => Configuration::get('TESTMODULE_NAME'),
             'my_module_password' => Configuration::get('TESTMODULE_PASSWORD'),
-			'my_module_update_time' => Configuration::get('TESTMODULE_UPDATE_TIME'),
-			'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
-			
+            'my_module_update_time' => Configuration::get('TESTMODULE_UPDATE_TIME'),
+            'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
+
         ]);
-		
-		return $this->display(__FILE__, 'testModule.tpl');
-	}
-		
-	
-	public function hookActionOrderStatusPostUpdate($params)
-	{	
-		Configuration::updateValue('TESTMODULE_ORDER', 'This is a new order1');	
-	}
+
+        return $this->display(__FILE__, 'testModule.tpl');
+    }
+
+
+    public function hookActionOrderStatusPostUpdate($params)
+    {
+        Configuration::updateValue('TESTMODULE_ORDER', 'This is a new order1');
+    }
 
     public function hookActionFrontControllerSetMedia()
     {
@@ -341,5 +333,4 @@ class testModule extends Module
             ]
         );
     }
-
 }

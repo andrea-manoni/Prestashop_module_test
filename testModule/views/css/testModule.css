@@ -2,3 +2,14 @@ div#test_module p {
     font-size: 150%;
     font-style:italic;
 }
+#TESTMODULE_UPDATE_TIME {
+    width: 15%!important;
+}
+
+#TESTMODULE_NAME {
+    width: 15%!important;
+}
+
+#TESTMODULE_PASSWORD {
+    width: 15%!important;
+}
