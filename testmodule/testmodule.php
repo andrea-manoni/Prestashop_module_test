@@ -57,38 +57,14 @@ class testModule extends Module
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
-    public function checkTable($name)
-    {
-        $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `name`=\'' . $name . '\'';
-        
-            return Db::getInstance()->execute($sqlSearch);
-        }
-    }
-
     public function getTableValue($name)
     {
-        $servername = "localhost";
-        $username = "prestashop_1";
-        $password = "Ioov67^0";
-        $dbname = "prestashop_9";
-        $conn = new mysqli($servername,  $username, $password, $dbname);
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
         $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `data_name`=\'' . $name . '\'';
-        if ($conn->query($sqlSearch) === TRUE) {
-            echo "Table value taken successfully";
-            $result = mysqli_query($conn, $sqlSearch);
-            if (mysqli_num_rows($result) > 0) {
-                $value = mysqli_fetch_assoc($result);
-                $conn->close();
-                return $value["data_value"];
-            } else {
-                $conn->close();
-                return false;
-            }
+        $result = Db::getInstance()->getRow($sqlSearch);
+        if ($result) {
+
+            return $result["data_value"];
         } else {
-            $conn->close();
             return false;
         }
     }
@@ -96,16 +72,17 @@ class testModule extends Module
     public function updateTableValue($name, $data)
     {
         $sql = 'UPDATE `prstshp_testmodule` SET `data_value`=\'' . $data . '\', `date_upd` = CURRENT_TIMESTAMP WHERE `name`=\'' . $name . '\'';
-        
+
         return Db::getInstance()->execute($sql);
     }
+
 
     public function insertFirstData()
     {
         $sqlName = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_NAME\', \'Username\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
-        
+
         $sqlPass = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_PASSWORD\', \'pass\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
-        
+
         $sqlUpd = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_UPDATE_TIME\', "10" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
 
         return Db::getInstance()->execute($sqlName) && Db::getInstance()->execute($sqlPass) && Db::getInstance()->execute($sqlUpd);
@@ -113,9 +90,8 @@ class testModule extends Module
 
     public function deleteTable()
     {
-
         $sql = "DROP TABLE prstshp_testmodule";
-       
+
         return Db::getInstance()->execute($sql);
     }
 
@@ -124,17 +100,6 @@ class testModule extends Module
     {
         if (Shop::isFeatureActive()) {
             Shop::setContext(Shop::CONTEXT_ALL);
-        }
-
-        if (
-            !parent::install() ||
-            !$this->registerHook('displayOrderConfirmation') ||
-            !$this->registerHook('actionFrontControllerSetMedia') &&
-            $this->installTab() &&
-            !$this->registerHook('actionOrderStatusPostUpdate')
-
-        ) {
-            return false;
         }
 
         $sql = "CREATE TABLE IF NOT EXISTS prstshp_testmodule (
@@ -147,7 +112,14 @@ class testModule extends Module
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=UTF8;'";
 
 
-        return Db::getInstance()->execute($sql) && $this->insertFirstData();
+        return
+            Db::getInstance()->execute($sql) &&
+            $this->insertFirstData() &&
+            parent::install() &&
+            $this->registerHook('displayOrderConfirmation') ||
+            $this->registerHook('actionFrontControllerSetMedia') ||
+            $this->registerHook('actionOrderStatusPostUpdate') &&
+            $this->installTab();
     }
 
 
@@ -203,16 +175,10 @@ class testModule extends Module
 
     public function uninstall()
     {
-        if (
-            !parent::uninstall() ||
+        return
             $this->uninstallTab() &&
-            $this->deleteTable()
-
-        ) {
-            return false;
-        }
-
-        return true;
+            $this->deleteTable() &&
+            parent::uninstall();
     }
 
 
