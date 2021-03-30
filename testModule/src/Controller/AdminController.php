@@ -29,12 +29,44 @@ class AdminController extends FrameworkBundleAdminController
        }
 
 
+       public function createTable(){
+              $servername = "localhost";
+              $username = "prestashop_1";
+              $password = "Ioov67^0";
+              $dbname = "prestashop_9";
+              // Create connection
+              $conn = new mysqli($servername, $username, $password, $dbname);
+              if ($conn->connect_error) {
+              die("Connection failed: " . $conn->connect_error);
+              }
+              $sql = "CREATE TABLE prstshp_testmodule (
+                  id_testmodule INT NOT NULL UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                  data_name VARCHAR NOT NULL,
+                  data_value text DEFAULT NULL,
+                  data_json JSON DEFAULT NULL,
+                  date_add DATETIME(),
+                  date_upd DATETIME(),
+                  PRIMARY KEY(id_testmodule)
+                  )";
+                  $message = "NOPE";
+                  if ($conn->query($sql) === TRUE) {
+                    echo "Table prstshp_configuration created successfully";
+                    $message = "CIAO";
+                  } else {
+                    echo "Error creating table: " . $conn->error;
+                  }
+                  
+                  $conn->close();
+                  return $message;
+          }
+
        public function testAction()
-       {
+       {      
+              $message = $this->createTable();
               $value = $this->getData() != false ? $this->getData() : "No data found in database";
               $yourService = $this->get('koent.test_module.custom_service');
               return $this->render('@Modules/testModule/views/templates/admin/test.html.twig', [
-                     'customMessage' => $value,
+                     'customMessage' => $message,
               ]);
        }
 }

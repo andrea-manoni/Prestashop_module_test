@@ -26,6 +26,7 @@
  */
 
 
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -33,6 +34,8 @@ if (!defined('_PS_VERSION_')) {
 
 class testModule extends Module
 {
+
+
     public function __construct()
     {
         $this->name = 'testModule';
@@ -52,17 +55,148 @@ class testModule extends Module
         $this->description = $this->l('Prestashop test module, fetching data from api and showing it in backoffice.');
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+    }
 
-        if (!Configuration::get('TESTMODULE_NAME')) {
-            $this->warning = $this->l('No name provided');
+    public function checkTable($name)
+    {
+        $servername = "localhost";
+        $username = "prestashop_1";
+        $password = "Ioov67^0";
+        $dbname = "prestashop_9";
+        $conn = new mysqli($servername,  $username, $password, $dbname);
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
         }
-        if (!Configuration::get('TESTMODULE_PASSWORD')) {
-            $this->warning = $this->l('No passwords provided');
-        }
-        if (!Configuration::get('TESTMODULE_UPDATE_TIME')) {
-            $this->warning = $this->l('Update time not set');
+        $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `name`=\'' . $name . '\'';
+        if ($conn->query($sqlSearch) === TRUE) {
+            echo "Table prstshp_testmodule created successfully";
+            $result = mysqli_query($conn, $sqlSearch);
+            if (mysqli_num_rows($result) > 0) {
+                $conn->close();
+                return true;
+            } else {
+                $conn->close();
+                return false;
+            }
+        } else {
+            $conn->close();
+            return false;
         }
     }
+
+    public function getTableValue($name)
+    {
+        $servername = "localhost";
+        $username = "prestashop_1";
+        $password = "Ioov67^0";
+        $dbname = "prestashop_9";
+        $conn = new mysqli($servername,  $username, $password, $dbname);
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+        $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `name`=\'' . $name . '\'';
+        if ($conn->query($sqlSearch) === TRUE) {
+            echo "Table prstshp_testmodule created successfully";
+            $result = mysqli_query($conn, $sqlSearch);
+            if (mysqli_num_rows($result) > 0) {
+                $value = mysqli_fetch_assoc($result);
+                $conn->close();
+                return $value["value"];
+            } else {
+                $conn->close();
+                return false;
+            }
+        } else {
+            $conn->close();
+            return false;
+        }
+    }
+
+    public function updateTableValue($name, $data)
+    {
+        $servername = "localhost";
+        $username = "prestashop_1";
+        $password = "Ioov67^0";
+        $dbname = "prestashop_9";
+        $conn = new mysqli($servername,  $username, $password, $dbname);
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+        $sql = 'UPDATE `prstshp_testmodule` SET `value`=\'' . $data . '\', `date_upd` = CURRENT_TIMESTAMP WHERE `name`=\'' . $name . '\'';
+        if ($conn->query($sql) === TRUE) {
+            echo "Table prstshp_testmodule created successfully";
+            return true;
+        } else {
+            $conn->close();
+            return false;
+        }
+    }
+
+    public function createTable()
+    {
+        $servername = "localhost";
+        $username = "prestashop_1";
+        $password = "Ioov67^0";
+        $dbname = "prestashop_9";
+        // Create connection
+        $conn = new mysqli($servername,  $username, $password, $dbname);
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+        $sql = "CREATE TABLE prstshp_testmodule (
+            id_testmodule INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            data_name VARCHAR(50) NOT NULL,
+            data_value VARCHAR(50) DEFAULT NULL,
+            data_json JSON,
+            date_add DATETIME DEFAULT NULL,
+            date_upd DATETIME DEFAULT NULL
+            )";
+        if ($conn->query($sql) === TRUE) {
+            $conn->close();
+            echo "Table prstshp_testmodule created successfully";
+            return true;
+        } else {
+            $conn->close();
+            echo "Error creating table: " . $conn->error;
+            return false;
+        }
+    }
+
+    public function insertFirstData()
+    {
+        $sqlName = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_NAME\', \'Username\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
+        
+        $sqlPass = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_PASSWORD\', \'pass\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
+        
+        $sqlUpd = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_UPDATE_TIME\', "10" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
+
+        return Db::getInstance()->execute($sqlName) && Db::getInstance()->execute($sqlPass) && Db::getInstance()->execute($sqlUpd);
+    }
+
+    public function deleteTable()
+    {
+        $servername = "localhost";
+        $username = "prestashop_1";
+        $password = "Ioov67^0";
+        $dbname = "prestashop_9";
+        // Create connection
+        $conn = new mysqli($servername,  $username, $password, $dbname);
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+        $sql = "DROP TABLE prstshp_testmodule";
+        $message = "NOPE";
+        if ($conn->query($sql) === TRUE) {
+            echo "Table prstshp_testmodule created successfully";
+            $conn->close();
+            return true;
+        } else {
+            echo "Error creating table: " . $conn->error;
+            $conn->close();
+            return false;
+        }
+    }
+
 
     public function install()
     {
@@ -76,14 +210,25 @@ class testModule extends Module
             !$this->registerHook('actionFrontControllerSetMedia') ||
             !$this->registerHook('actionOrderStatusPostUpdate') &&
             $this->installTab()
+
         ) {
             return false;
         }
-        Configuration::updateValue('TESTMODULE_NAME', 'Username');
-        Configuration::updateValue('TESTMODULE_PASSWORD', 'password');
-        Configuration::updateValue('TESTMODULE_UPDATE_TIME', 10);
-        return true;
+
+        $sql = "CREATE TABLE IF NOT EXISTS prstshp_testmodule (
+            `id_testmodule` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            `data_name` VARCHAR(50) NOT NULL,
+            `data_value` VARCHAR(50) DEFAULT NULL,
+            `data_json` JSON,
+            `date_add` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `date_upd` DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=UTF8;'";
+
+
+        return Db::getInstance()->execute($sql) && $this->insertFirstData();
     }
+
+
 
 
 
@@ -134,19 +279,13 @@ class testModule extends Module
         return $tab->delete();
     }
 
-
-
-
-
-
     public function uninstall()
     {
         if (
             !parent::uninstall() ||
-            !Configuration::deleteByName('TESTMODULE_NAME') ||
-            !Configuration::deleteByName('TESTMODULE_PASSWORD') ||
-            !Configuration::deleteByName('TESTMODULE_UPDATE_TIME') &&
-            $this->uninstallTab()
+            $this->uninstallTab() &&
+            $this->deleteTable()
+
         ) {
             return false;
         }
@@ -160,9 +299,9 @@ class testModule extends Module
         $output = null;
 
         if (Tools::isSubmit('submit' . $this->name)) {
-            $testModuleName = strval(Tools::getValue('TESTMODULE_NAME'));
-            $testModulePass = strval(Tools::getValue('TESTMODULE_PASSWORD'));
-            $testModuleUpdateTime = intval(Tools::getValue('TESTMODULE_UPDATE_TIME'));
+            $testModuleName = strval($this->getTableValue("TESTMODULE_NAME"));
+            $testModulePass = strval($this->getTableValue("TESTMODULE_PASSWORD"));
+            $testModuleUpdateTime = intval($this->getTableValue("TESTMODULE_UPDATE_TIME"));
 
             if (
                 !$testModuleName ||
@@ -171,7 +310,7 @@ class testModule extends Module
             ) {
                 $output .= $this->displayError($this->l('Invalid Username value'));
             } else {
-                Configuration::updateValue('TESTMODULE_NAME', $testModuleName);
+                $this->updateTableValue('TESTMODULE_NAME', $testModuleName);
                 $output .= $this->displayConfirmation($this->l('Username updated'));
             }
 
@@ -182,19 +321,19 @@ class testModule extends Module
             ) {
                 $output .= $this->displayError($this->l('Invalid password value'));
             } else {
-                Configuration::updateValue('TESTMODULE_PASSWORD', $testModulePass);
+                $this->updateTableValue('TESTMODULE_PASSWORD', $testModulePass);
                 $output .= $this->displayConfirmation($this->l('Password updated'));
             }
 
             if (
                 !$testModuleUpdateTime ||
-				empty($testModuleUpdateTime) ||
-				!is_numeric($testModuleUpdateTime)
+                empty($testModuleUpdateTime) ||
+                !is_numeric($testModuleUpdateTime)
             ) {
                 $output .= $this->displayError($this->l('Invalid Update time value'));
             } else {
-                Configuration::updateValue('TESTMODULE_UPDATE_TIME', $testModuleUpdateTime);
-				$output .= $this->displayConfirmation($this->l('Update time updated'));
+                $this->updateTableValue('TESTMODULE_UPDATE_TIME', $testModuleUpdateTime);
+                $output .= $this->displayConfirmation($this->l('Update time updated'));
             }
         }
 
@@ -205,6 +344,8 @@ class testModule extends Module
 
     public function displayForm()
     {
+
+
         // Get default language
         $defaultLang = (int)Configuration::get('PS_LANG_DEFAULT');
 
@@ -272,9 +413,9 @@ class testModule extends Module
         ];
 
         // Load current value
-        $helper->fields_value['TESTMODULE_NAME'] = Tools::getValue('TESTMODULE_NAME', Configuration::get('TESTMODULE_NAME'));
-        $helper->fields_value['TESTMODULE_PASSWORD'] = Tools::getValue('TESTMODULE_PASSWORD', Configuration::get('TESTMODULE_PASSWORD'));
-        $helper->fields_value['TESTMODULE_UPDATE_TIME'] = (int)Tools::getValue('TESTMODULE_UPDATE_TIME', Configuration::get('TESTMODULE_UPDATE_TIME'));
+        $helper->fields_value['TESTMODULE_NAME'] = $this->getTableValue("TESTMODULE_NAME");
+        $helper->fields_value['TESTMODULE_PASSWORD'] = $this->getTableValue("TESTMODULE_PASSWORD");
+        $helper->fields_value['TESTMODULE_UPDATE_TIME'] = $this->getTableValue("TESTMODULE_UPDATE_TIME");
         return $helper->generateForm($fieldsForm);
     }
 
@@ -283,9 +424,9 @@ class testModule extends Module
     public function hookDisplayLogoAfter()
     {
         $this->context->smarty->assign([
-            'my_module_name' => Configuration::get('TESTMODULE_NAME'),
-            'my_module_password' => Configuration::get('TESTMODULE_PASSWORD'),
-            'my_module_update_time' => Configuration::get('TESTMODULE_UPDATE_TIME'),
+            'my_module_name' => $this->getTableValue("TESTMODULE_NAME"),
+            'my_module_password' => $this->getTableValue("TESTMODULE_PASSWORD"),
+            'my_module_update_time' => $this->getTableValue("TESTMODULE_UPDATE_TIME"),
             'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
 
         ]);
@@ -296,9 +437,9 @@ class testModule extends Module
     public function hookDisplayOrderConfirmation($params)
     {
         $this->context->smarty->assign([
-            'my_module_name' => Configuration::get('TESTMODULE_NAME'),
-            'my_module_password' => Configuration::get('TESTMODULE_PASSWORD'),
-            'my_module_update_time' => Configuration::get('TESTMODULE_UPDATE_TIME'),
+            'my_module_name' => $this->getTableValue("TESTMODULE_NAME"),
+            'my_module_password' => $this->getTableValue("TESTMODULE_PASSWORD"),
+            'my_module_update_time' => $this->getTableValue("TESTMODULE_UPDATE_TIME"),
             'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
 
         ]);
@@ -309,7 +450,6 @@ class testModule extends Module
 
     public function hookActionOrderStatusPostUpdate($params)
     {
-        Configuration::updateValue('TESTMODULE_ORDER', 'This is a new order1');
     }
 
     public function hookActionFrontControllerSetMedia()
