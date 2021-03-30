@@ -59,28 +59,9 @@ class testModule extends Module
 
     public function checkTable($name)
     {
-        $servername = "localhost";
-        $username = "prestashop_1";
-        $password = "Ioov67^0";
-        $dbname = "prestashop_9";
-        $conn = new mysqli($servername,  $username, $password, $dbname);
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
         $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `name`=\'' . $name . '\'';
-        if ($conn->query($sqlSearch) === TRUE) {
-            echo "Table prstshp_testmodule created successfully";
-            $result = mysqli_query($conn, $sqlSearch);
-            if (mysqli_num_rows($result) > 0) {
-                $conn->close();
-                return true;
-            } else {
-                $conn->close();
-                return false;
-            }
-        } else {
-            $conn->close();
-            return false;
+        
+            return Db::getInstance()->execute($sqlSearch);
         }
     }
 
@@ -94,14 +75,14 @@ class testModule extends Module
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
         }
-        $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `name`=\'' . $name . '\'';
+        $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `data_name`=\'' . $name . '\'';
         if ($conn->query($sqlSearch) === TRUE) {
-            echo "Table prstshp_testmodule created successfully";
+            echo "Table value taken successfully";
             $result = mysqli_query($conn, $sqlSearch);
             if (mysqli_num_rows($result) > 0) {
                 $value = mysqli_fetch_assoc($result);
                 $conn->close();
-                return $value["value"];
+                return $value["data_value"];
             } else {
                 $conn->close();
                 return false;
@@ -114,52 +95,9 @@ class testModule extends Module
 
     public function updateTableValue($name, $data)
     {
-        $servername = "localhost";
-        $username = "prestashop_1";
-        $password = "Ioov67^0";
-        $dbname = "prestashop_9";
-        $conn = new mysqli($servername,  $username, $password, $dbname);
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
-        $sql = 'UPDATE `prstshp_testmodule` SET `value`=\'' . $data . '\', `date_upd` = CURRENT_TIMESTAMP WHERE `name`=\'' . $name . '\'';
-        if ($conn->query($sql) === TRUE) {
-            echo "Table prstshp_testmodule created successfully";
-            return true;
-        } else {
-            $conn->close();
-            return false;
-        }
-    }
-
-    public function createTable()
-    {
-        $servername = "localhost";
-        $username = "prestashop_1";
-        $password = "Ioov67^0";
-        $dbname = "prestashop_9";
-        // Create connection
-        $conn = new mysqli($servername,  $username, $password, $dbname);
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
-        $sql = "CREATE TABLE prstshp_testmodule (
-            id_testmodule INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            data_name VARCHAR(50) NOT NULL,
-            data_value VARCHAR(50) DEFAULT NULL,
-            data_json JSON,
-            date_add DATETIME DEFAULT NULL,
-            date_upd DATETIME DEFAULT NULL
-            )";
-        if ($conn->query($sql) === TRUE) {
-            $conn->close();
-            echo "Table prstshp_testmodule created successfully";
-            return true;
-        } else {
-            $conn->close();
-            echo "Error creating table: " . $conn->error;
-            return false;
-        }
+        $sql = 'UPDATE `prstshp_testmodule` SET `data_value`=\'' . $data . '\', `date_upd` = CURRENT_TIMESTAMP WHERE `name`=\'' . $name . '\'';
+        
+        return Db::getInstance()->execute($sql);
     }
 
     public function insertFirstData()
@@ -175,26 +113,10 @@ class testModule extends Module
 
     public function deleteTable()
     {
-        $servername = "localhost";
-        $username = "prestashop_1";
-        $password = "Ioov67^0";
-        $dbname = "prestashop_9";
-        // Create connection
-        $conn = new mysqli($servername,  $username, $password, $dbname);
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
+
         $sql = "DROP TABLE prstshp_testmodule";
-        $message = "NOPE";
-        if ($conn->query($sql) === TRUE) {
-            echo "Table prstshp_testmodule created successfully";
-            $conn->close();
-            return true;
-        } else {
-            echo "Error creating table: " . $conn->error;
-            $conn->close();
-            return false;
-        }
+       
+        return Db::getInstance()->execute($sql);
     }
 
 
@@ -207,9 +129,9 @@ class testModule extends Module
         if (
             !parent::install() ||
             !$this->registerHook('displayOrderConfirmation') ||
-            !$this->registerHook('actionFrontControllerSetMedia') ||
-            !$this->registerHook('actionOrderStatusPostUpdate') &&
-            $this->installTab()
+            !$this->registerHook('actionFrontControllerSetMedia') &&
+            $this->installTab() &&
+            !$this->registerHook('actionOrderStatusPostUpdate')
 
         ) {
             return false;

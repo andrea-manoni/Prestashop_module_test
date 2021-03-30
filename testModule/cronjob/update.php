@@ -1,11 +1,12 @@
 <?php
 $servername = "localhost";
-$username = "prestashop_1";
-$password = "Y7dzb4^4";
-$dbname = "prestashop_9";
+        $username = "prestashop_1";
+        $password = "Ioov67^0";
+        $dbname = "prestashop_9";
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
+	echo "ERROR";
   die("Connection failed: " . $conn->connect_error);
 }
 
@@ -23,10 +24,10 @@ json_encode($data);
 //UPDATE
 
 
-$sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `name`=\'TESTMODULE_CRONJOB\'';
+$sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `data_name`=\'TESTMODULE_CRONJOB\'';
 $resultCronJob = mysqli_query($conn, $sqlSearch);
 if (mysqli_num_rows($resultCronJob) > 0) {
-	$sqlSearch = 'SELECT value FROM `prstshp_testmodule` WHERE`name`=\'TESTMODULE_UPDATE_TIME\'';
+	$sqlSearch = 'SELECT data_value FROM `prstshp_testmodule` WHERE`data_name`=\'TESTMODULE_UPDATE_TIME\'';
 	$resultUpdateTime = mysqli_query($conn, $sqlSearch);
 	if(mysqli_num_rows($resultUpdateTime) > 0) {
 		$valueUpdate = mysqli_fetch_assoc($resultUpdateTime);
@@ -35,8 +36,8 @@ if (mysqli_num_rows($resultCronJob) > 0) {
 		$date_diff = date_diff(date_create($now),date_create($updateCronJob["date_upd"]));
 		$mins = $date_diff->i;
 		$date_diff->h > 0 ? $mins = ($date_diff->h * 60) + $mins : $mins = $mins;
-		if($mins >= $valueUpdate["value"]){
-		$sql = 'UPDATE `prstshp_testmodule` SET `value`=\''.$data.'\', `date_upd` = CURRENT_TIMESTAMP WHERE `name`=\'TESTMODULE_CRONJOB\'';
+		if($mins >= $valueUpdate["data_value"]){
+		$sql = 'UPDATE `prstshp_testmodule` SET `data_json`=\''.$data.'\', `date_upd` = CURRENT_TIMESTAMP WHERE `data_name`=\'TESTMODULE_CRONJOB\'';
 		$message = 'Record updated';
 			if ($conn->query($sql) === TRUE) {
   				echo $message;
