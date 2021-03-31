@@ -2,8 +2,16 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
-        <h1>Welcome to the module page</h1>
-        <p>{{customMessage}}</p>
+        <h1>Graph of users post data</h1>
+ 		{% for data in values%}
+		{% set red = random(255) %}
+		{% set green = random(255) %}
+		{% set blue = random(255) %}
+		<h3>User-{{loop.index}} sum of posts:{{data.num}} with total length:{{data.len}}</h3>
+		<svg width={{data.len*0.75}} height="70">
+		<rect y="0" width={{data.len*0.75}} height="40" style={{"fill:rgb(%u,%u,%u);"|format(red,green,blue)}} />
+		</svg>
+		{% endfor %}
     </div>
 </div>
 {% endblock %}

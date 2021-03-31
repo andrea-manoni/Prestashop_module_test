@@ -118,6 +118,7 @@ class testModule extends Module
             parent::install() &&
             $this->registerHook('displayOrderConfirmation') ||
             $this->registerHook('actionFrontControllerSetMedia') ||
+            $this->registerHook('actionAdminControllerSetMedia') ||
             $this->registerHook('actionOrderStatusPostUpdate') &&
             $this->installTab();
     }
@@ -309,6 +310,9 @@ class testModule extends Module
 
     //HOOKS
 
+	
+	
+	
     public function hookDisplayLogoAfter()
     {
         $this->context->smarty->assign([
@@ -361,4 +365,17 @@ class testModule extends Module
             ]
         );
     }
+
+    public function hookActionAdminControllerSetMedia($params)
+	{ 
+    // Adds your's JavaScript file from a module's directory
+    $this->context->controller->registerJavascript(
+        'TESTMODULE-javascript',
+        $this->_path . 'views/js/backoffice.js',
+        [
+            'position' => 'bottom',
+            'priority' => 1000,
+        ]
+    );
+	}
 }

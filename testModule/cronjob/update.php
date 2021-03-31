@@ -2,12 +2,17 @@
 require_once 'presta.koent.it/config/config.inc.php';
 require_once 'presta.koent.it/classes/db/Db.php';
 
+mb_language('uni');
+mb_internal_encoding('UTF-8');
 $ch = curl_init('https://jsonplaceholder.typicode.com/posts');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HEADER, 0);
 $data = curl_exec($ch);
 curl_close($ch);
-json_encode($data);
+$data = json_decode($data);
+$data = json_encode($data);
+
+var_dump($data);
 
 $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `data_name`=\'TESTMODULE_CRONJOB\'';
 if ($resultCronJob = Db::getInstance()->getRow($sqlSearch)) {
@@ -18,7 +23,7 @@ if ($resultCronJob = Db::getInstance()->getRow($sqlSearch)) {
 		$mins = $date_diff->i;
 		$date_diff->h > 0 ? $mins = ($date_diff->h * 60) + $mins : $mins = $mins;
 		if($mins >= $resultUpdateTime["data_value"]) {
-            $sql = 'UPDATE `prstshp_testmodule` SET `data_json`=\''.$data.'\', `date_upd` = CURRENT_TIMESTAMP WHERE `data_name`=\'TESTMODULE_CRONJOB\'';
+            $sql = 'UPDATE `prstshp_testmodule` SET `data_json`=\''.($data).'\', `date_upd` = CURRENT_TIMESTAMP WHERE `data_name`=\'TESTMODULE_CRONJOB\'';
             Db::getInstance()->execute($sql);
                 echo "UPDATE RECORD";
         }
