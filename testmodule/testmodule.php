@@ -48,13 +48,19 @@ class testModule extends Module
             'max' => _PS_VERSION_
         ];
         $this->bootstrap = true;
-
-        parent::__construct();
-
-        $this->displayName = $this->l('Test Module');
-        $this->description = $this->l('Prestashop test module, fetching data from api and showing it in backoffice.');
+		
+		//DASHBOARD
+		$this->push_filename = _PS_CACHE_DIR_.'push/activity';
+		$this->allow_push = true;
+		$this->push_time_limit = 10;
+		//
+		$this->displayName = $this->l('Test Module');
+        $this->description = $this->l('Prestashop test module, fetching data from api and showing it 		in backoffice.');
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+        parent::__construct();
+
+        
     }
 
     public function getTableValue($name)
@@ -116,10 +122,12 @@ class testModule extends Module
             Db::getInstance()->execute($sql) &&
             $this->insertFirstData() &&
             parent::install() &&
-            $this->registerHook('displayOrderConfirmation') ||
-            $this->registerHook('actionFrontControllerSetMedia') ||
-            $this->registerHook('actionAdminControllerSetMedia') ||
-            $this->registerHook('actionOrderStatusPostUpdate') &&
+            $this->registerHook('displayOrderConfirmation') &&
+            $this->registerHook('actionFrontControllerSetMedia') &&
+			$this->registerHook('actionAdminControllerSetMedia') &&
+			$this->registerHook('displayBackOfficeHeader') &&
+			$this->registerHook('dashboardZoneTwo') &&
+			$this->registerHook('dashboardData') &&
             $this->installTab();
     }
 
@@ -309,23 +317,7 @@ class testModule extends Module
     }
 
     //HOOKS
-
 	
-	
-	
-    public function hookDisplayLogoAfter()
-    {
-        $this->context->smarty->assign([
-            'my_module_name' => $this->getTableValue("TESTMODULE_NAME"),
-            'my_module_password' => $this->getTableValue("TESTMODULE_PASSWORD"),
-            'my_module_update_time' => $this->getTableValue("TESTMODULE_UPDATE_TIME"),
-            'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
-
-        ]);
-
-        return $this->display(__FILE__, 'testModule.tpl');
-    }
-
     public function hookDisplayOrderConfirmation($params)
     {
         $this->context->smarty->assign([
@@ -337,11 +329,6 @@ class testModule extends Module
         ]);
 
         return $this->display(__FILE__, 'testModule.tpl');
-    }
-
-
-    public function hookActionOrderStatusPostUpdate($params)
-    {
     }
 
     public function hookActionFrontControllerSetMedia()
@@ -365,17 +352,38 @@ class testModule extends Module
             ]
         );
     }
-
-    public function hookActionAdminControllerSetMedia($params)
-	{ 
-    // Adds your's JavaScript file from a module's directory
-    $this->context->controller->registerJavascript(
-        'TESTMODULE-javascript',
-        $this->_path . 'views/js/backoffice.js',
-        [
-            'position' => 'bottom',
-            'priority' => 1000,
-        ]
+	
+	public function hookDashboardZoneTwo($params)
+{
+    $this->context->smarty->assign(array(
+		'text' => "TEST MODULE DASHBOARD"
+	));
+		
+    return $this->display(__FILE__, 'dashboard_zone_two.tpl');
+}
+	
+	public function hookDashboardData($params)
+{
+    $luckyNumber = $this->getRandomDataDashboard();
+    
+    return array(
+        'data_value' => array(
+            'luckyNumber' => $luckyNumber,
+        )
     );
-	}
+}
+     public function getRandomDataDashboard(){
+		 return "The lucky number is:".rand();
+	 }
+	
+	
+	 public function hookActionAdminControllerSetMedia()
+    {
+		$this->context->controller->addJS( _MODULE_DIR_.'views/js/testModule.js' );
+    }
+	
+	 public function hookDisplayBackOfficeHeader()
+    {
+		$this->context->controller->addJS( _MODULE_DIR_.'views/js/testModule.js' );
+    }
 }
