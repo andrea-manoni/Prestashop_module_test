@@ -48,19 +48,13 @@ class testModule extends Module
             'max' => _PS_VERSION_
         ];
         $this->bootstrap = true;
-		
-		//DASHBOARD
-		$this->push_filename = _PS_CACHE_DIR_.'push/activity';
-		$this->allow_push = true;
-		$this->push_time_limit = 10;
-		//
-		$this->displayName = $this->l('Test Module');
-        $this->description = $this->l('Prestashop test module, fetching data from api and showing it 		in backoffice.');
 
-        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
         parent::__construct();
 
-        
+        $this->displayName = $this->l('Test Module');
+        $this->description = $this->l('Prestashop test module, fetching data from api and showing it in backoffice.');
+
+        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
     public function getTableValue($name)
@@ -85,13 +79,19 @@ class testModule extends Module
 
     public function insertFirstData()
     {
-        $sqlName = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_NAME\', \'Username\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
+        $sqlName = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto`) VALUES (\'TESTMODULE_NAME\', \'Username\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
 
-        $sqlPass = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_PASSWORD\', \'pass\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
+        $sqlPass = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto` ) VALUES (\'TESTMODULE_PASSWORD\', \'pass\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
 
-        $sqlUpd = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`) VALUES (\'TESTMODULE_UPDATE_TIME\', "10" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
+        $sqlBaseUrl = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto` ) VALUES (\'TESTMODULE_BASEURL\', "asdasd" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , false)';
 
-        return Db::getInstance()->execute($sqlName) && Db::getInstance()->execute($sqlPass) && Db::getInstance()->execute($sqlUpd);
+        $sqlUpd = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto`) VALUES (\'TESTMODULE_UPDATE_TIME\', "10" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
+
+        $sqlOrders = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto`) VALUES (\'TESTMODULE_ORDERS\', "order" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
+
+        $sqlAuto = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto`) VALUES (\'TESTMODULE_AUTO\', "false" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
+
+        return Db::getInstance()->execute($sqlName) && Db::getInstance()->execute($sqlPass) && Db::getInstance()->execute($sqlUpd) && Db::getInstance()->execute($sqlBaseUrl) && Db::getInstance()->execute($sqlOrders) && Db::getInstance()->execute($sqlAuto);
     }
 
     public function deleteTable()
@@ -108,27 +108,24 @@ class testModule extends Module
             Shop::setContext(Shop::CONTEXT_ALL);
         }
 
-        $sql = "CREATE TABLE IF NOT EXISTS prstshp_testmodule (
+        $sql = "CREATE TABLE prstshp_testmodule (
             `id_testmodule` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             `data_name` VARCHAR(50) NOT NULL,
             `data_value` VARCHAR(50) DEFAULT NULL,
             `data_json` JSON,
             `date_add` DATETIME DEFAULT CURRENT_TIMESTAMP,
-            `date_upd` DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=UTF8;'";
+            `date_upd` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `data_auto` BOOLEAN NOT NULL
+            )";
 
 
-        return
-            Db::getInstance()->execute($sql) &&
-            $this->insertFirstData() &&
-            parent::install() &&
-            $this->registerHook('displayOrderConfirmation') &&
-            $this->registerHook('actionFrontControllerSetMedia') &&
-			$this->registerHook('actionAdminControllerSetMedia') &&
-			$this->registerHook('displayBackOfficeHeader') &&
-			$this->registerHook('dashboardZoneTwo') &&
-			$this->registerHook('dashboardData') &&
-            $this->installTab();
+        return(Db::getInstance()->execute($sql) &&
+        $this->insertFirstData() &&
+        parent::install() &&
+        $this->registerHook('displayOrderConfirmation') &&
+        $this->registerHook('actionFrontControllerSetMedia') &&
+        $this->registerHook('actionOrderStatusPostUpdate') &&
+        $this->installTab());
     }
 
 
@@ -198,7 +195,11 @@ class testModule extends Module
         if (Tools::isSubmit('submit' . $this->name)) {
             $testModuleName = strval($this->getTableValue("TESTMODULE_NAME"));
             $testModulePass = strval($this->getTableValue("TESTMODULE_PASSWORD"));
+            $testModuleBaseUrl = strval($this->getTableValue("TESTMODULE_BASEURL"));
             $testModuleUpdateTime = intval($this->getTableValue("TESTMODULE_UPDATE_TIME"));
+            $testModuleOrders = strval($this->getTableValue("TESTMODULE_ORDERS"));
+            $testModuleAutoUpdate = ($this->getTableValue("TESTMODULE_AUTO"));
+            
 
             if (
                 !$testModuleName ||
@@ -223,6 +224,26 @@ class testModule extends Module
             }
 
             if (
+                !$testModuleBaseUrl ||
+                empty($testModuleBaseUrl) ||
+                !Validate::isGenericName($testModuleBaseUrl)
+            ) {
+                $output .= $this->displayError($this->l('Invalid Base url value'));
+            } else {
+                $this->updateTableValue('TESTMODULE_BASEURL', $testModuleBaseUrl);
+                $output .= $this->displayConfirmation($this->l('Base url updated'));
+            }
+
+            if (
+                empty($testModuleAutoUpdate)
+            ) {
+                $output .= $this->displayError($this->l('Invalid auto value'));
+            } else {
+                $this->updateTableValue('TESTMODULE_ORDERS', $testModuleAutoUpdate);
+                $output .= $this->displayConfirmation($this->l('Auto updated'));
+            }
+
+            if (
                 !$testModuleUpdateTime ||
                 empty($testModuleUpdateTime) ||
                 !is_numeric($testModuleUpdateTime)
@@ -232,6 +253,20 @@ class testModule extends Module
                 $this->updateTableValue('TESTMODULE_UPDATE_TIME', $testModuleUpdateTime);
                 $output .= $this->displayConfirmation($this->l('Update time updated'));
             }
+
+            if (
+                !$testModuleOrders ||
+                empty($testModuleOrders) ||
+                !Validate::isGenericName($testModuleOrders)
+            ) {
+                $output .= $this->displayError($this->l('Invalid order value'));
+            } else {
+                $this->updateTableValue('TESTMODULE_ORDERS', $testModuleOrders);
+                $output .= $this->displayConfirmation($this->l('Orders updated'));
+            }
+
+           
+
         }
 
 
@@ -268,10 +303,54 @@ class testModule extends Module
                 ],
                 [
                     'type' => 'text',
+                    'label' => $this->l('Base URL'),
+                    'name' => 'TESTMODULE_BASEURL',
+                    'size' => 20,
+                    'required' => true
+                ],
+                [
+                    'type' => 'switch',
+                        'label' => $this->l('Do you want to autoupdate the data?'),
+                        'name' => 'TESTMODULE_AUTO',
+                        'is_bool' => true,
+                        'values' => array(
+                            array(
+                                'id' => 'active_on',
+                                'value' => true,
+                                'label' => 'yes',
+                            ),
+                            array(
+                                'id' => 'active_off',
+                                'value' => false,
+                                'label' => 'no',
+                            )
+                        )
+                ],
+                [
+                    'type' => 'text',
                     'label' => $this->l('Time to pass before new updates in minutes'),
                     'name' => 'TESTMODULE_UPDATE_TIME',
                     'size' => 20,
                     'required' => true,
+                ]
+            ],
+            'submit' => [
+                'title' => $this->l('Save'),
+                'class' => 'btn btn-default pull-right'
+            ]
+        ];
+		
+		 $fieldsForm[1]['form'] = [
+            'legend' => [
+                'title' => $this->l('Orders'),
+            ],
+            'input' => [
+                [
+                    'type' => 'text',
+                    'label' => $this->l('Orders'),
+                    'name' => 'TESTMODULE_ORDERS',
+                    'size' => 20,
+                    'required' => true
                 ]
             ],
             'submit' => [
@@ -312,12 +391,36 @@ class testModule extends Module
         // Load current value
         $helper->fields_value['TESTMODULE_NAME'] = $this->getTableValue("TESTMODULE_NAME");
         $helper->fields_value['TESTMODULE_PASSWORD'] = $this->getTableValue("TESTMODULE_PASSWORD");
+        $helper->fields_value['TESTMODULE_BASEURL'] = $this->getTableValue("TESTMODULE_BASEURL");
+        $helper->fields_value['TESTMODULE_AUTO'] = $this->getTableValue("TESTMODULE_AUTO");
         $helper->fields_value['TESTMODULE_UPDATE_TIME'] = $this->getTableValue("TESTMODULE_UPDATE_TIME");
+        $helper->fields_value['TESTMODULE_ORDERS'] = $this->getTableValue("TESTMODULE_ORDERS");
+       
         return $helper->generateForm($fieldsForm);
     }
 
     //HOOKS
+
+	public function hookActionAdminControllerSetMedia($params)
+	{ 
+    // Adds your's JavaScript file from a module's directory
+    $this->context->controller->addJS($this->_path . 'views/js/backoffice.js');
+	}
 	
+	
+    public function hookDisplayLogoAfter()
+    {
+        $this->context->smarty->assign([
+            'my_module_name' => $this->getTableValue("TESTMODULE_NAME"),
+            'my_module_password' => $this->getTableValue("TESTMODULE_PASSWORD"),
+            'my_module_update_time' => $this->getTableValue("TESTMODULE_UPDATE_TIME"),
+            'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
+
+        ]);
+
+        return $this->display(__FILE__, 'testModule.tpl');
+    }
+
     public function hookDisplayOrderConfirmation($params)
     {
         $this->context->smarty->assign([
@@ -329,6 +432,11 @@ class testModule extends Module
         ]);
 
         return $this->display(__FILE__, 'testModule.tpl');
+    }
+
+
+    public function hookActionOrderStatusPostUpdate($params)
+    {
     }
 
     public function hookActionFrontControllerSetMedia()
@@ -351,39 +459,5 @@ class testModule extends Module
                 'priority' => 1000,
             ]
         );
-    }
-	
-	public function hookDashboardZoneTwo($params)
-{
-    $this->context->smarty->assign(array(
-		'text' => "TEST MODULE DASHBOARD"
-	));
-		
-    return $this->display(__FILE__, 'dashboard_zone_two.tpl');
-}
-	
-	public function hookDashboardData($params)
-{
-    $luckyNumber = $this->getRandomDataDashboard();
-    
-    return array(
-        'data_value' => array(
-            'luckyNumber' => $luckyNumber,
-        )
-    );
-}
-     public function getRandomDataDashboard(){
-		 return "The lucky number is:".rand();
-	 }
-	
-	
-	 public function hookActionAdminControllerSetMedia()
-    {
-		$this->context->controller->addJS( _MODULE_DIR_.'views/js/testModule.js' );
-    }
-	
-	 public function hookDisplayBackOfficeHeader()
-    {
-		$this->context->controller->addJS( _MODULE_DIR_.'views/js/testModule.js' );
     }
 }

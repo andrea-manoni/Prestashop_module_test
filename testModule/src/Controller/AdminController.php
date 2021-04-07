@@ -33,11 +33,10 @@ class AdminController extends FrameworkBundleAdminController
 
        public function testAction()
        {      
-		   	  
               $values = $this->getData();
               $yourService = $this->get('koent.test_module.custom_service');
               return $this->render('@Modules/testModule/views/templates/admin/test.html.twig', [
-                     'values' => $values,
+                     'values' => $values
               ]);
        }
 }
