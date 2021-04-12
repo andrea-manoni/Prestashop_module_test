@@ -25,3 +25,41 @@
 * Don't forget to prefix your containers with your own identifier
 * to avoid any conflicts with others containers.
 */
+
+var isFirstLoad = true;
+document.addEventListener('DOMContentLoaded', () => {
+	if (isFirstLoad) {
+		isFirstLoad = false;
+		enableAutoUpdate();
+	}
+});
+
+function enableAutoUpdate(){
+let autoupdate = $('input[name="TESTMODULE_AUTO"]');
+	for (input of autoupdate) {
+		input.disabled = false;
+	}
+	checkAutoUpdate();
+	setOnClick();
+	
+}
+
+function checkAutoUpdate(){
+	let autoupdate = $('input[name="TESTMODULE_AUTO"]');
+	for (input of autoupdate) {
+		if((input.checked) && (input.value == '1')){
+			document.getElementById("TESTMODULE_UPDATE_TIME").disabled = false;
+		} else if((input.checked) && (input.value == '0')) {
+			document.getElementById("TESTMODULE_UPDATE_TIME").disabled = true;
+		}
+	}
+}
+
+function setOnClick(){
+	let autoupdate = $('input[name="TESTMODULE_AUTO"]');
+	for (input of autoupdate) {
+		console.log("CIAO");
+		input.onclick = function() {checkAutoUpdate()};
+	}
+}
+

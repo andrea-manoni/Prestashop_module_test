@@ -49,6 +49,11 @@ class testModule extends Module
         ];
         $this->bootstrap = true;
 
+        //DASHBOARD
+		$this->push_filename = _PS_CACHE_DIR_.'push/activity';
+		$this->allow_push = true;
+		$this->push_time_limit = 10;
+
         parent::__construct();
 
         $this->displayName = $this->l('Test Module');
@@ -71,7 +76,26 @@ class testModule extends Module
 
     public function updateTableValue($name, $data)
     {
-        $sql = 'UPDATE `prstshp_testmodule` SET `data_value`=\'' . $data . '\', `date_upd` = CURRENT_TIMESTAMP WHERE `name`=\'' . $name . '\'';
+        $sql = 'UPDATE `prstshp_testmodule` SET `data_value`=\'' . $data . '\', `date_upd` = CURRENT_TIMESTAMP WHERE `data_name`=\'' . $name . '\'';
+
+        return Db::getInstance()->execute($sql);
+    }
+
+    public function getTableValueAutoupdate($name)
+    {
+        $sqlSearch = 'SELECT * FROM `prstshp_testmodule` WHERE `data_name`=\'' . $name . '\'';
+        $result = Db::getInstance()->getRow($sqlSearch);
+        if ($result) {
+            return $result["data_auto"];
+        } else {
+            return false;
+        }
+    }
+
+    public function updateTableValueAutoupdate($name, $data)
+    {
+		
+        $sql = 'UPDATE `prstshp_testmodule` SET `data_auto`=\'' . $data . '\', `date_upd` = CURRENT_TIMESTAMP WHERE `data_name`=\'' . $name . '\'';
 
         return Db::getInstance()->execute($sql);
     }
@@ -79,19 +103,20 @@ class testModule extends Module
 
     public function insertFirstData()
     {
-        $sqlName = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto`) VALUES (\'TESTMODULE_NAME\', \'Username\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
+        $sqlName = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` , `data_auto`,`date_add`, `date_upd`) VALUES (\'TESTMODULE_NAME\', \'Username\',NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
 
-        $sqlPass = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto` ) VALUES (\'TESTMODULE_PASSWORD\', \'pass\',NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
+        $sqlPass = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` , `data_auto`,`date_add`, `date_upd`) VALUES (\'TESTMODULE_PASSWORD\', \'pass\',NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
 
-        $sqlBaseUrl = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto` ) VALUES (\'TESTMODULE_BASEURL\', "asdasd" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP , false)';
+        $sqlUrl = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` , `data_auto`,`date_add`, `date_upd`) VALUES (\'TESTMODULE_BASEURL\', "jashgfgas" ,NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
+      
+        $sqlAuto = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` , `data_auto`,`date_add`, `date_upd`) VALUES (\'TESTMODULE_AUTO\', NULL ,NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
 
-        $sqlUpd = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto`) VALUES (\'TESTMODULE_UPDATE_TIME\', "10" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
+        $sqlUpd = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` , `data_auto`,`date_add`, `date_upd`) VALUES (\'TESTMODULE_UPDATE_TIME\', "10" ,NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
 
-        $sqlOrders = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto`) VALUES (\'TESTMODULE_ORDERS\', "order" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
 
-        $sqlAuto = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` ,`date_add`, `date_upd`,`data_auto`) VALUES (\'TESTMODULE_AUTO\', "false" ,NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false)';
-
-        return Db::getInstance()->execute($sqlName) && Db::getInstance()->execute($sqlPass) && Db::getInstance()->execute($sqlUpd) && Db::getInstance()->execute($sqlBaseUrl) && Db::getInstance()->execute($sqlOrders) && Db::getInstance()->execute($sqlAuto);
+        $sqlOrders = 'INSERT INTO `prstshp_testmodule`(`data_name`, `data_value`,`data_json` , `data_auto`,`date_add`, `date_upd`) VALUES (\'TESTMODULE_ORDERS\', "oghorf" ,NULL, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)';
+       
+        return Db::getInstance()->execute($sqlName) && Db::getInstance()->execute($sqlPass) && Db::getInstance()->execute($sqlUrl) && Db::getInstance()->execute($sqlAuto) && Db::getInstance()->execute($sqlUpd) && Db::getInstance()->execute($sqlOrders);
     }
 
     public function deleteTable()
@@ -108,24 +133,28 @@ class testModule extends Module
             Shop::setContext(Shop::CONTEXT_ALL);
         }
 
-        $sql = "CREATE TABLE prstshp_testmodule (
+        $sql = "CREATE TABLE IF NOT EXISTS prstshp_testmodule (
             `id_testmodule` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             `data_name` VARCHAR(50) NOT NULL,
             `data_value` VARCHAR(50) DEFAULT NULL,
             `data_json` JSON,
+            `data_auto` BOOLEAN NOT NULL,
             `date_add` DATETIME DEFAULT CURRENT_TIMESTAMP,
-            `date_upd` DATETIME DEFAULT CURRENT_TIMESTAMP,
-            `data_auto` BOOLEAN NOT NULL
-            )";
+            `date_upd` DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=UTF8;'";
 
 
-        return(Db::getInstance()->execute($sql) &&
-        $this->insertFirstData() &&
-        parent::install() &&
-        $this->registerHook('displayOrderConfirmation') &&
-        $this->registerHook('actionFrontControllerSetMedia') &&
-        $this->registerHook('actionOrderStatusPostUpdate') &&
-        $this->installTab());
+        return
+            Db::getInstance()->execute($sql) &&
+            $this->insertFirstData() &&
+            parent::install() &&
+            $this->registerHook('displayOrderConfirmation') &&
+            $this->registerHook('actionFrontControllerSetMedia') &&
+            $this->registerHook('dashboardZoneTwo') &&
+			$this->registerHook('dashboardData') &&
+			$this->registerHook('actionAdminControllerSetMedia') &&
+			$this->registerHook('displayAdminForm') &&
+            $this->installTab();
     }
 
 
@@ -193,14 +222,16 @@ class testModule extends Module
         $output = null;
 
         if (Tools::isSubmit('submit' . $this->name)) {
-            $testModuleName = strval($this->getTableValue("TESTMODULE_NAME"));
-            $testModulePass = strval($this->getTableValue("TESTMODULE_PASSWORD"));
-            $testModuleBaseUrl = strval($this->getTableValue("TESTMODULE_BASEURL"));
-            $testModuleUpdateTime = intval($this->getTableValue("TESTMODULE_UPDATE_TIME"));
-            $testModuleOrders = strval($this->getTableValue("TESTMODULE_ORDERS"));
-            $testModuleAutoUpdate = ($this->getTableValue("TESTMODULE_AUTO"));
-            
-
+            $testModuleName = strval(Tools::getValue("TESTMODULE_NAME"));
+            $testModulePass = strval(Tools::getValue("TESTMODULE_PASSWORD"));
+            $testModuleBaseUrl = strval(Tools::getValue("TESTMODULE_BASEURL"));
+			$testModuleAuto = (Tools::getValue("TESTMODULE_AUTO"));
+			
+            $testModuleUpdateTime = intval(Tools::getValue("TESTMODULE_UPDATE_TIME"));
+           
+            $testModuleOrders = strval(Tools::getValue("TESTMODULE_ORDERS"));
+			
+			
             if (
                 !$testModuleName ||
                 empty($testModuleName) ||
@@ -235,12 +266,14 @@ class testModule extends Module
             }
 
             if (
-                empty($testModuleAutoUpdate)
+               ($testModuleAuto == 0) || ($testModuleAuto == 1)
             ) {
-                $output .= $this->displayError($this->l('Invalid auto value'));
+				
+				 $this->updateTableValueAutoupdate('TESTMODULE_AUTO', $testModuleAuto);
+                $output .= $this->displayConfirmation($this->l('Autoupdate updated'));
+               
             } else {
-                $this->updateTableValue('TESTMODULE_ORDERS', $testModuleAutoUpdate);
-                $output .= $this->displayConfirmation($this->l('Auto updated'));
+                $output .= $this->displayError($this->l('Invalid Autoupdate value'));
             }
 
             if (
@@ -254,21 +287,23 @@ class testModule extends Module
                 $output .= $this->displayConfirmation($this->l('Update time updated'));
             }
 
+
             if (
                 !$testModuleOrders ||
                 empty($testModuleOrders) ||
                 !Validate::isGenericName($testModuleOrders)
             ) {
-                $output .= $this->displayError($this->l('Invalid order value'));
+                $output .= $this->displayError($this->l('Invalid Orders value'));
             } else {
                 $this->updateTableValue('TESTMODULE_ORDERS', $testModuleOrders);
                 $output .= $this->displayConfirmation($this->l('Orders updated'));
             }
 
-           
-
+        
+        
+        
+        
         }
-
 
         return $output . $this->displayForm();
     }
@@ -316,12 +351,12 @@ class testModule extends Module
                         'values' => array(
                             array(
                                 'id' => 'active_on',
-                                'value' => true,
+                                'value' => 1,
                                 'label' => 'yes',
                             ),
                             array(
                                 'id' => 'active_off',
-                                'value' => false,
+                                'value' => 0,
                                 'label' => 'no',
                             )
                         )
@@ -339,10 +374,10 @@ class testModule extends Module
                 'class' => 'btn btn-default pull-right'
             ]
         ];
-		
-		 $fieldsForm[1]['form'] = [
+
+        $fieldsForm[1]['form'] = [
             'legend' => [
-                'title' => $this->l('Orders'),
+                'title' => $this->l('Orders Settings'),
             ],
             'input' => [
                 [
@@ -392,33 +427,52 @@ class testModule extends Module
         $helper->fields_value['TESTMODULE_NAME'] = $this->getTableValue("TESTMODULE_NAME");
         $helper->fields_value['TESTMODULE_PASSWORD'] = $this->getTableValue("TESTMODULE_PASSWORD");
         $helper->fields_value['TESTMODULE_BASEURL'] = $this->getTableValue("TESTMODULE_BASEURL");
-        $helper->fields_value['TESTMODULE_AUTO'] = $this->getTableValue("TESTMODULE_AUTO");
+        $helper->fields_value['TESTMODULE_AUTO'] = $this->getTableValueAutoupdate("TESTMODULE_AUTO");
         $helper->fields_value['TESTMODULE_UPDATE_TIME'] = $this->getTableValue("TESTMODULE_UPDATE_TIME");
+
         $helper->fields_value['TESTMODULE_ORDERS'] = $this->getTableValue("TESTMODULE_ORDERS");
-       
-        return $helper->generateForm($fieldsForm);
+
+		
+		
+        return $helper->generateForm($fieldsForm) && $this->context->controller->addJS($this->_path.'views/js/back.js');
     }
 
     //HOOKS
+	
+	public function hookDisplayAdminForm()
+{
+	$this->context->controller->addJS($this->_path.'views/js/back.js');
+}
 
-	public function hookActionAdminControllerSetMedia($params)
-	{ 
-    // Adds your's JavaScript file from a module's directory
-    $this->context->controller->addJS($this->_path . 'views/js/backoffice.js');
+	public function hookActionAdminControllerSetMedia()
+{
+	$this->context->controller->addJquery();
+    // Adds your's JavaScript from a module's directory
+    $this->context->controller->addJS($this->_path . 'views/js/testModule.js');
+}
+	
+    public function hookDashboardZoneTwo($params)
+{
+    $this->context->smarty->assign(array(
+		'text' => "TEST MODULE DASHBOARD"
+	));
+		
+    return $this->display(__FILE__, 'dashboard_zone_two.tpl');
+}
+	
+	public function hookDashboardData($params)
+{
+    $luckyNumber = $this->getRandomDataDashboard();
+    
+    return array(
+        'data_value' => array(
+            'luckyNumber' => $luckyNumber,
+        )
+    );
 	}
-	
-	
-    public function hookDisplayLogoAfter()
-    {
-        $this->context->smarty->assign([
-            'my_module_name' => $this->getTableValue("TESTMODULE_NAME"),
-            'my_module_password' => $this->getTableValue("TESTMODULE_PASSWORD"),
-            'my_module_update_time' => $this->getTableValue("TESTMODULE_UPDATE_TIME"),
-            'my_module_message' => $this->l('ORDER CONFIRMED!!!!!!!!!!!!!!!!!!!!!'),
 
-        ]);
-
-        return $this->display(__FILE__, 'testModule.tpl');
+    public function getRandomDataDashboard(){
+        return "The lucky number is:".rand();
     }
 
     public function hookDisplayOrderConfirmation($params)
@@ -432,11 +486,6 @@ class testModule extends Module
         ]);
 
         return $this->display(__FILE__, 'testModule.tpl');
-    }
-
-
-    public function hookActionOrderStatusPostUpdate($params)
-    {
     }
 
     public function hookActionFrontControllerSetMedia()
